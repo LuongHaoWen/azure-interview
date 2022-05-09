@@ -18,6 +18,16 @@ resource "azurerm_public_ip" "interview-ip" {
   resource_group_name = azurerm_resource_group.interview-rg.name
   allocation_method   = "Dynamic"
 }
+
+#create subnet
+
+resource "azurerm_subnet" "interview-subnet" {
+  name                 = "interview-subnet"
+  resource_group_name  = azurerm_resource_group.interview-rg.name
+  virtual_network_name = azurerm_virtual_network.interview-vnet.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
 # Create Network Security Group and rule
 resource "azurerm_network_security_group" "interview-nsg" {
   name                = "interview-nsg"
@@ -35,8 +45,19 @@ resource "azurerm_network_security_group" "interview-nsg" {
     destination_address_prefix = "*"
   }
 }
+ #create network interface
+resource "azurerm_network_interface" "interview-ni" {
+  name                = "interview-ni"
+  location            = azurerm_resource_group.interview-rg.location
+  resource_group_name = azurerm_resource_group.interview-rg.name
 
-# Connect the security group to the network interface
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.interview-subnet.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
 
 
 # Create virtual machine disk 
@@ -50,3 +71,59 @@ resource "azurerm_managed_disk" "interview-osdisk"{
 }
 
 
+#create virtual machine
+
+resource "azurerm_virtual_machine" "interview-vm" {
+  name                  = "interview-vm"
+  location              = azurerm_resource_group.interview-rg.location
+  resource_group_name   = azurerm_resource_group.interview-rg.name
+  network_interface_ids = [azurerm_network_interface.interview-ni.id]
+  vm_size               = "Standard_F1"
+
+  storage_os_disk {
+
+    name              = "myosdisk1"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+ 
+  os_profile {
+    computer_name  = "hostname"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+  tags = {
+    environment = "staging"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+#attach the disk created
+resource "azurerm_virtual_machine_data_disk_attachment" "disk-attach" {
+  managed_disk_id    = azurerm_managed_disk.interview-osdisk.id
+  virtual_machine_id = azurerm_virtual_machine.interview-vm.id
+  lun                = "10"
+  caching            = "ReadWrite"
+}
