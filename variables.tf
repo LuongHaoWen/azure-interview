@@ -1,4 +1,14 @@
 #resource group variables
+variable "email_name"{
+  type=string
+  nullable = false
+  description =" candidates email without special characters"
+   }
+ 
+
+
+
+
 variable "azurerm_resource_group_name" {
   type          = string
   default       = "interview-rg"
