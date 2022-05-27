@@ -1,4 +1,4 @@
-output "SPN_id"{
+output "SPN_username"{
   value = azuread_service_principal.interview-spn.application_id
   description = "interview SPN details"
 }
