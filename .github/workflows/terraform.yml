@@ -57,8 +57,7 @@ permissions:
 
 jobs:
 
-  azure-cc-interview:
-    runs-on: [self-hosted]
+  
 
 
 
