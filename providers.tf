@@ -9,7 +9,7 @@ terraform {
   }
 
   backend "azurerm" {
-    resource_group_name  = "interview-spn-storage"
+  resource_group_name  = "interview-spn-storage"
     storage_account_name = "hwspnstorage"
     container_name       = "spncontainer"
     key                  = "terraform.tfstate"
